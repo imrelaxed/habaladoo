@@ -56,16 +56,18 @@ class SubscriptionController extends Controller
 
     public function postUpdateCreditCard()
     {
-
+        $user = Auth::user();
         $token = Input::get('token');
-        if ($this->user->updateCard($token)) {
+        try {
+            $user->updateCard($token);
 
-            event(new UserChangedCreditCardEvent($this->user));
-
-            return redirect()->back()->with('notice', 'Your credit card information has been updated!');
-        } else {
-            return redirect()->back();
+                }  catch (\Exception $e) {
+            // Catch any error from Stripe API request and show
+            return redirect()->back()->with('notice', $e->getMessage());
         }
+            event(new UserChangedCreditCardEvent($user));
+            return redirect()->back()->with('notice', 'Your credit card information has been updated!');
+
     }
 
     /**
